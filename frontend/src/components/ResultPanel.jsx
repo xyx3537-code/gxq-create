@@ -1,7 +1,6 @@
 import { motion } from 'framer-motion'
 import {
-  RadarChart, Radar, PolarGrid, PolarAngleAxis,
-  ResponsiveContainer, Tooltip as RTooltip,
+  PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RTooltip,
 } from 'recharts'
 import { Activity, Dna } from 'lucide-react'
 
@@ -12,6 +11,16 @@ const HOST_META = {
   bacteria:     { cn:'Bacteria',     icon:'🦠', color:'#f87171' },
   plant:        { cn:'Plant',        icon:'🌿', color:'#4ade80' },
   invertebrate: { cn:'Invertebrate', icon:'🦋', color:'#c084fc' },
+}
+
+/* Gradient-feel colors for donut segments */
+const DONUT_COLORS = {
+  fungi:        '#9333ea',
+  algae:        '#3b82f6',
+  protozoa:     '#06b6d4',
+  bacteria:     '#10b981',
+  plant:        '#22c55e',
+  invertebrate: '#6366f1',
 }
 
 /* ── Confidence arc ───────────────────────────────────── */
@@ -42,29 +51,15 @@ function ConfidenceArc({ value }) {
   )
 }
 
-/* ── Custom radar tick ────────────────────────────────── */
-function RadarTick({ x, y, payload, textAnchor, predicted }) {
-  const host = payload.value
-  const m    = HOST_META[host] || {}
-  const top  = host === predicted
-  return (
-    <text x={x} y={y} textAnchor={textAnchor} dominantBaseline="middle"
-      fill={top ? m.color : 'rgba(255,255,255,0.35)'}
-      fontSize={top ? 12 : 11} fontWeight={top ? 600 : 400}>
-      {m.icon} {m.cn}
-    </text>
-  )
-}
-
-/* ── Radar tooltip ────────────────────────────────────── */
-const RadarTooltip = ({ active, payload }) => {
+/* ── Donut tooltip ────────────────────────────────────── */
+const DonutTooltip = ({ active, payload }) => {
   if (!active || !payload?.length) return null
   const host  = payload[0]?.payload?.host
   const value = payload[0]?.value
   const m     = HOST_META[host] || {}
   return (
     <div className="glass rounded-lg px-3 py-1.5 border border-white/10 text-xs shadow-lg">
-      <span style={{ color: m.color }} className="font-semibold">{m.icon} {m.cn}</span>
+      <span style={{ color: DONUT_COLORS[host] }} className="font-semibold">{m.icon} {m.cn}</span>
       <span className="text-white/60 ml-2">{value?.toFixed(1)}%</span>
     </div>
   )
@@ -91,17 +86,17 @@ export default function ResultPanel({ result, analyzing }) {
           gc_content, protein_count, auto_translated, short_genome,
           d1_contribution, d2_contribution, top_kmers } = result
 
-  const meta    = HOST_META[predicted_host] || {}
+  const meta      = HOST_META[predicted_host] || {}
   const hostColor = meta.color || '#60a5fa'
 
-  /* Radar data — 6 hosts */
-  const radarData = Object.entries(probabilities).map(([host, v]) => ({
+  /* Donut data */
+  const pieData = Object.entries(probabilities).map(([host, v]) => ({
     host,
     value: +(v * 100).toFixed(2),
   }))
 
   /* Top 3 sorted */
-  const top3 = [...radarData].sort((a,b) => b.value - a.value).slice(0, 3)
+  const top3 = [...pieData].sort((a,b) => b.value - a.value).slice(0, 3)
 
   return (
     <motion.div
@@ -116,7 +111,7 @@ export default function ResultPanel({ result, analyzing }) {
         <Activity size={11}/> Prediction Results
       </div>
 
-      {/* ── Row 1: host card + radar ─────────────────── */}
+      {/* ── Row 1: host card + donut ─────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
 
         {/* Host + confidence */}
@@ -139,7 +134,6 @@ export default function ResultPanel({ result, analyzing }) {
 
           <ConfidenceArc value={confidence}/>
 
-          {/* Warnings */}
           {short_genome && (
             <div className="mt-2 w-full text-[11px] text-amber-300/70 border border-amber-400/20
                            rounded-lg px-3 py-1.5 bg-amber-400/5 text-center">
@@ -154,29 +148,71 @@ export default function ResultPanel({ result, analyzing }) {
           )}
         </div>
 
-        {/* Radar chart */}
+        {/* Donut chart */}
         <div className="sm:col-span-3 glass rounded-2xl p-5"
           style={{ boxShadow:'inset 0 0 0 1px rgba(255,255,255,0.05)' }}>
           <div className="text-[10px] text-white/30 font-mono tracking-widest uppercase mb-1">
             Host Probability Distribution
           </div>
 
-          <ResponsiveContainer width="100%" height={220}>
-            <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="65%">
-              <PolarGrid stroke="rgba(255,255,255,0.06)" strokeDasharray="3 3"/>
-              <PolarAngleAxis dataKey="host"
-                tick={(props) => <RadarTick {...props} predicted={predicted_host}/>}/>
-              <defs>
-                <radialGradient id="rg" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%"   stopColor="#06b6d4" stopOpacity="0.5"/>
-                  <stop offset="100%" stopColor="#6366f1" stopOpacity="0.15"/>
-                </radialGradient>
-              </defs>
-              <Radar dataKey="value" stroke="#06b6d4" strokeWidth={1.5}
-                fill="url(#rg)" dot={{ fill:'#06b6d4', r:3, strokeWidth:0 }}/>
-              <RTooltip content={<RadarTooltip/>}/>
-            </RadarChart>
-          </ResponsiveContainer>
+          <div className="relative h-[200px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <defs>
+                  {Object.entries(DONUT_COLORS).map(([host, color]) => (
+                    <radialGradient key={host} id={`grad-${host}`} cx="50%" cy="50%" r="50%">
+                      <stop offset="0%" stopColor={color} stopOpacity="0.9"/>
+                      <stop offset="100%" stopColor={color} stopOpacity="0.6"/>
+                    </radialGradient>
+                  ))}
+                </defs>
+                <Pie
+                  data={pieData}
+                  cx="50%" cy="50%"
+                  innerRadius="44%" outerRadius="68%"
+                  dataKey="value"
+                  paddingAngle={3}
+                  startAngle={90} endAngle={-270}
+                  label={({ cx, cy, midAngle, outerRadius, host, value }) => {
+                    if (value < 4) return null
+                    const rad = Math.PI / 180
+                    const r   = outerRadius + 16
+                    const x   = cx + r * Math.cos(-midAngle * rad)
+                    const y   = cy + r * Math.sin(-midAngle * rad)
+                    return (
+                      <text x={x} y={y} textAnchor="middle" dominantBaseline="central"
+                        fontSize={11} fill={DONUT_COLORS[host]}
+                        opacity={host === predicted_host ? 1 : 0.5}
+                        fontWeight={host === predicted_host ? 700 : 400}>
+                        {HOST_META[host]?.icon} {value.toFixed(0)}%
+                      </text>
+                    )
+                  }}
+                  labelLine={false}
+                >
+                  {pieData.map((entry) => (
+                    <Cell
+                      key={entry.host}
+                      fill={`url(#grad-${entry.host})`}
+                      opacity={entry.host === predicted_host ? 1 : 0.35}
+                      stroke={entry.host === predicted_host ? DONUT_COLORS[entry.host] : 'transparent'}
+                      strokeWidth={2}
+                    />
+                  ))}
+                </Pie>
+                <RTooltip content={<DonutTooltip/>}/>
+              </PieChart>
+            </ResponsiveContainer>
+
+            {/* Center label */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="text-center">
+                <div className="text-2xl">{meta.icon}</div>
+                <div className="text-[11px] font-bold mt-0.5" style={{ color: hostColor }}>{meta.cn}</div>
+                <div className="text-[10px] text-white/35 font-mono">{(confidence*100).toFixed(0)}%</div>
+              </div>
+            </div>
+          </div>
 
           {/* Top 3 predictions */}
           <div className="border-t border-white/[0.06] pt-3 mt-1 space-y-1.5">
@@ -189,16 +225,16 @@ export default function ResultPanel({ result, analyzing }) {
                 <div key={item.host} className="flex items-center gap-3">
                   <span className="text-white/25 text-xs w-3">{i+1}</span>
                   <span className="text-base w-5">{m.icon}</span>
-                  <span className="text-sm flex-1" style={{ color: i===0 ? m.color : 'rgba(255,255,255,0.5)' }}>
+                  <span className="text-sm flex-1" style={{ color: i===0 ? DONUT_COLORS[item.host] : 'rgba(255,255,255,0.5)' }}>
                     {m.cn}
                   </span>
                   <div className="flex items-center gap-2">
                     <div className="w-20 h-1 rounded-full bg-white/[0.06] overflow-hidden">
                       <div className="h-full rounded-full transition-all"
-                        style={{ width:`${item.value}%`, background: i===0 ? m.color : 'rgba(255,255,255,0.2)' }}/>
+                        style={{ width:`${item.value}%`, background: i===0 ? DONUT_COLORS[item.host] : 'rgba(255,255,255,0.2)' }}/>
                     </div>
                     <span className="text-xs font-mono w-10 text-right"
-                      style={{ color: i===0 ? m.color : 'rgba(255,255,255,0.35)' }}>
+                      style={{ color: i===0 ? DONUT_COLORS[item.host] : 'rgba(255,255,255,0.35)' }}>
                       {item.value.toFixed(1)}%
                     </span>
                   </div>
