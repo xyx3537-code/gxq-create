@@ -60,8 +60,11 @@ HOST_ICON = {
 @st.cache_data(show_spinner=False)
 def _load_example_genome() -> str:
     fasta = pathlib.Path(__file__).parent / "data" / "raw" / "real_virus.fasta"
-    rec = next(SeqIO.parse(str(fasta), "fasta"))
-    return str(rec.seq)   # NC_116874.1_fungi，9651 bp
+    try:
+        rec = next(SeqIO.parse(str(fasta), "fasta"))
+        return str(rec.seq)
+    except (FileNotFoundError, StopIteration):
+        return ""
 
 EXAMPLE_GENOME = _load_example_genome()
 EXAMPLE_PROTEINS = """\
@@ -125,7 +128,7 @@ with tab_single:
         protein_seqs = []
 
         if input_mode == "粘贴序列":
-            if st.button("载入示例序列", use_container_width=True):
+            if EXAMPLE_GENOME and st.button("载入示例序列", use_container_width=True):
                 st.session_state["genome_input"]  = EXAMPLE_GENOME
                 st.session_state["protein_input"] = EXAMPLE_PROTEINS
 
