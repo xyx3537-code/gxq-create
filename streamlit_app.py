@@ -479,3 +479,11 @@ with tab_batch:
                     st.caption(
                         f"⚠ {n_short} 条序列短于 5,000 bp，预测可靠性较低（结果表中标注 ⚠）。"
                     )
+
+st.divider()
+st.caption(
+    "**GXQ_Create** · Multimodal eukaryotic virus-host prediction · "
+    "© 2026 Yixuan Xu, Ocean University of China · "
+    "License: [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) · "
+    "Contact: yixuan.xu01@student.adelaide.edu.au"
+)

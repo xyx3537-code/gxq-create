@@ -12,7 +12,7 @@ import csv
 import pandas as pd
 from Bio import Entrez, SeqIO
 
-Entrez.email = "xyx3537@gmail.com"
+Entrez.email = "yixuan.xu01@student.adelaide.edu.au"
 
 META_FILE      = "data/raw/real_virus_meta.csv"
 OUTPUT_FASTA   = "data/raw/virus_proteins.fasta"

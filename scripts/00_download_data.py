@@ -12,7 +12,7 @@ import csv
 from Bio import Entrez, SeqIO
 
 # ── 配置 ──────────────────────────────────────────────────────────────────────
-Entrez.email = "xyx3537@gmail.com"   # NCBI 要求填邮箱
+Entrez.email = "yixuan.xu01@student.adelaide.edu.au"   # NCBI 要求填邮箱
 
 OUTPUT_FASTA = "data/raw/real_virus.fasta"
 OUTPUT_META  = "data/raw/real_virus_meta.csv"
