@@ -10,7 +10,7 @@ GXQ_Create Flask API
 """
 
 import io
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import importlib.util, pathlib
 from Bio import SeqIO
@@ -157,5 +157,18 @@ def predict_fasta():
     return jsonify(result)
 
 
+REACT_BUILD = pathlib.Path(__file__).parent / "frontend" / "dist"
+
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
+def serve_react(path):
+    if REACT_BUILD.exists():
+        target = REACT_BUILD / path
+        if path and target.exists():
+            return send_from_directory(REACT_BUILD, path)
+        return send_from_directory(REACT_BUILD, "index.html")
+    return jsonify({"status": "GXQ_Create API running"}), 200
+
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=False)
+    app.run(host="0.0.0.0", port=7860, debug=False)
