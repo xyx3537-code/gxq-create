@@ -1,0 +1,22 @@
+D1 增强准确率: 0.9375
+
+特征维度: 344
+
+分类报告:
+              precision    recall  f1-score   support
+
+       algae       0.95      0.95      0.95        80
+    bacteria       0.93      0.93      0.93        80
+       fungi       0.99      0.96      0.97        80
+    protozoa       0.89      0.91      0.90        80
+
+    accuracy                           0.94       320
+   macro avg       0.94      0.94      0.94       320
+weighted avg       0.94      0.94      0.94       320
+
+混淆矩阵（行=真实，列=预测）:
+          algae  bacteria  fungi  protozoa
+algae        76         1      0         3
+bacteria      0        74      1         5
+fungi         0         2     77         1
+protozoa      4         3      0        73

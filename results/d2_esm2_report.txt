@@ -1,0 +1,24 @@
+D2 ESM-2 准确率: 0.9552
+
+分类报告:
+              precision    recall  f1-score   support
+
+       algae       0.95      0.99      0.97       122
+    bacteria       0.93      0.98      0.96       127
+       fungi       0.97      0.98      0.97       150
+invertebrate       0.97      0.89      0.93       145
+       plant       0.98      0.98      0.98       150
+    protozoa       0.92      0.90      0.91       109
+
+    accuracy                           0.96       803
+   macro avg       0.95      0.95      0.95       803
+weighted avg       0.96      0.96      0.95       803
+
+混淆矩阵（行=真实，列=预测）:
+              algae  bacteria  fungi  invertebrate  plant  protozoa
+algae           121         0      0             0      0         1
+bacteria          0       125      0             0      0         2
+fungi             0         0    147             2      0         1
+invertebrate      0         7      4           129      2         3
+plant             1         0      0             1    147         1
+protozoa          6         2      1             1      1        98

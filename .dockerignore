@@ -1,0 +1,17 @@
+# 原始数据不进镜像（体积太大，且运行时不需要）
+data/
+
+# 结果和日志
+results/
+logs/
+notebooks/
+docs/
+
+# Python 缓存
+__pycache__/
+*.pyc
+.env
+
+# Git
+.git/
+.gitignore

@@ -1,0 +1,7 @@
+,algae,bacteria,fungi,invertebrate,plant,protozoa
+algae,148,1,0,0,0,1
+bacteria,0,141,1,8,0,0
+fungi,0,4,146,0,0,0
+invertebrate,1,13,0,134,1,1
+plant,0,3,0,2,145,0
+protozoa,3,5,0,0,0,102
