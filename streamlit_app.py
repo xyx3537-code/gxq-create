@@ -4,7 +4,6 @@ Streamlit 演示界面 v0.6
 """
 
 import importlib.util
-import math
 import pathlib
 import io
 import pandas as pd
@@ -228,79 +227,69 @@ with tab_single:
 
             st.divider()
 
-            # ── 气泡图：6 个宿主按环形排列 ───────────────
+            # ── 环形图：6 个宿主概率，渐变配色 ──────────────
+            DONUT_COLORS = {
+                "fungi":        "#9333EA",
+                "algae":        "#3B82F6",
+                "protozoa":     "#06B6D4",
+                "bacteria":     "#10B981",
+                "plant":        "#22C55E",
+                "invertebrate": "#6366F1",
+            }
+
             hosts_list = list(HOST_CN.keys())
-            n          = len(hosts_list)
-            R          = 1.0
-            R_label    = 1.52
+            values_pie = [probs.get(h, 0) * 100 for h in hosts_list]
+            labels_pie = [f"{HOST_ICON[h]} {HOST_CN[h]}" for h in hosts_list]
+            colors_pie = [DONUT_COLORS[h] for h in hosts_list]
+            pull_vals  = [0.1 if h == host else 0 for h in hosts_list]
 
-            fig = go.Figure()
-
-            for i, h in enumerate(hosts_list):
-                angle  = i * 2 * math.pi / n - math.pi / 2
-                x, y   = R * math.cos(angle), R * math.sin(angle)
-                lx, ly = R_label * math.cos(angle), R_label * math.sin(angle)
-                p      = probs.get(h, 0)
-                is_top = h == host
-
-                fig.add_trace(go.Scatter(
-                    x=[0, x * 0.48], y=[0, y * 0.48],
-                    mode="lines",
-                    line=dict(color=HOST_COLOR[h],
-                              width=2 if is_top else 0.8,
-                              dash="solid" if is_top else "dot"),
-                    hoverinfo="skip",
-                    showlegend=False,
-                ))
-
-                bubble_size = max(p * 260, 32)
-                fig.add_trace(go.Scatter(
-                    x=[x], y=[y],
-                    mode="markers+text",
-                    marker=dict(
-                        size=bubble_size,
-                        color=HOST_COLOR[h],
-                        opacity=0.93 if is_top else 0.42,
-                        line=dict(color="white", width=3 if is_top else 1),
-                    ),
-                    text=[HOST_ICON[h]],
-                    textposition="middle center",
-                    textfont=dict(size=18 if is_top else 14),
-                    showlegend=False,
-                    hovertemplate=(
-                        f"<b>{HOST_CN[h]}</b><br>"
-                        f"概率: {p*100:.1f}%<extra></extra>"
-                    ),
-                ))
-
-                fig.add_annotation(
-                    x=lx, y=ly,
-                    text=f"<b>{HOST_CN[h]}</b><br>{p*100:.1f}%",
-                    showarrow=False,
-                    font=dict(
-                        size=13 if is_top else 11,
-                        color=HOST_COLOR[h] if is_top else "#666666",
-                    ),
-                    align="center",
-                )
-
-            fig.add_trace(go.Scatter(
-                x=[0], y=[0],
-                mode="markers+text",
-                marker=dict(size=58, color="white",
-                            line=dict(color=color, width=3)),
-                text=[icon],
-                textposition="middle center",
-                textfont=dict(size=26),
-                hoverinfo="skip",
-                showlegend=False,
+            fig = go.Figure(go.Pie(
+                labels=labels_pie,
+                values=values_pie,
+                hole=0.60,
+                pull=pull_vals,
+                marker=dict(
+                    colors=colors_pie,
+                    line=dict(color="rgba(255,255,255,0.4)", width=2),
+                ),
+                textinfo="label+percent",
+                textposition="outside",
+                textfont=dict(size=12),
+                hovertemplate="<b>%{label}</b><br>占比: %{value:.1f}%<extra></extra>",
+                sort=False,
+                direction="clockwise",
+                rotation=60,
             ))
 
+            fig.add_annotation(
+                x=0.5, y=0.58,
+                text=icon,
+                showarrow=False,
+                xref="paper", yref="paper",
+                font=dict(size=32),
+                align="center",
+            )
+            fig.add_annotation(
+                x=0.5, y=0.44,
+                text=f"<b>{cn}</b>",
+                showarrow=False,
+                xref="paper", yref="paper",
+                font=dict(size=15, color=color),
+                align="center",
+            )
+            fig.add_annotation(
+                x=0.5, y=0.32,
+                text=f"{conf*100:.1f}%",
+                showarrow=False,
+                xref="paper", yref="paper",
+                font=dict(size=13, color="#888"),
+                align="center",
+            )
+
             fig.update_layout(
-                xaxis=dict(visible=False, range=[-2.1, 2.1]),
-                yaxis=dict(visible=False, range=[-2.1, 2.1], scaleanchor="x"),
-                margin=dict(l=10, r=10, t=10, b=10),
-                height=400,
+                showlegend=False,
+                margin=dict(l=80, r=80, t=20, b=20),
+                height=390,
                 plot_bgcolor="rgba(0,0,0,0)",
                 paper_bgcolor="rgba(0,0,0,0)",
             )
